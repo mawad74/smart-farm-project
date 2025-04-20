@@ -1,12 +1,29 @@
-/node_modules
-/public/hot
-/public/storage
-/storage/*.key
+# Laravel specific
 /vendor
-.env
-.env.backup
-.phpunit.result.cache
-Homestead.json
-Homestead.yaml
-npm-debug.log
-yarn-error.log
+/node_modules
+/public/storage
+/public/hot
+/storage/*.key
+/.env
+/.env.*
+/.phpunit.result.cache
+
+# Laravel caches
+/bootstrap/cache/*.php
+
+# Composer / NPM
+/composer.lock
+/package-lock.json
+/yarn.lock
+
+# IDEs and OS
+/.idea/
+/.vscode/
+/.DS_Store
+/Thumbs.db
+
+# Logs & runtime
+/storage/logs
+/storage/framework/cache
+/storage/framework/sessions
+/storage/framework/views
