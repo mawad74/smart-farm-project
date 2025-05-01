@@ -15,7 +15,7 @@ class AdminScheduleController extends Controller
 {
     public function index(Request $request)
     {
-        $search = $request->input('search');
+        $search = $request->input(key: 'search');
         $sort = $request->input('sort', 'newest');
         $farm_id = $request->input('farm_id');
         $plant_id = $request->input('plant_id');
