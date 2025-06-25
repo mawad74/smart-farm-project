@@ -1,38 +1,39 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuthController;
-
-use App\Http\Controllers\Api\Admin\UserController;
-use App\Http\Controllers\Api\Admin\SensorController as AdminSensorController;
-use App\Http\Controllers\Api\Admin\FarmController as AdminFarmController;
-use App\Http\Controllers\Api\Admin\PlantController as AdminPlantController;
 use App\Http\Controllers\Api\Admin\ActuatorController as AdminActuatorController;
-use App\Http\Controllers\Api\Admin\ScheduleController as AdminScheduleController;
+use App\Http\Controllers\Api\Admin\AlertController as AdminAlertController;
 use App\Http\Controllers\Api\Admin\ControlCommandController as AdminControlCommandController;
 use App\Http\Controllers\Api\Admin\DiseaseDetectionController as AdminDiseaseDetectionController;
-use App\Http\Controllers\Api\Admin\AlertController as AdminAlertController;
-use App\Http\Controllers\Api\Admin\WeatherDataController as AdminWeatherDataController;
-use App\Http\Controllers\Api\Admin\SubscriptionController as AdminSubscriptionController;
+use App\Http\Controllers\Api\Admin\FarmController as AdminFarmController;
+use App\Http\Controllers\Api\Admin\FinancialRecordController;
+use App\Http\Controllers\Api\Admin\PlantController as AdminPlantController;
 use App\Http\Controllers\Api\Admin\ReportController;
 use App\Http\Controllers\Api\Admin\ReportRequestController;
-use App\Http\Controllers\Api\Admin\FinancialRecordController;
-
-use App\Http\Controllers\Api\FarmerManager\SensorController as FarmerManagerSensorController;
-use App\Http\Controllers\Api\FarmerManager\FarmController as FarmerManagerFarmController;
-use App\Http\Controllers\Api\FarmerManager\PlantController as FarmerManagerPlantController;
+use App\Http\Controllers\Api\Admin\ScheduleController as AdminScheduleController;
+use App\Http\Controllers\Api\Admin\SensorController as AdminSensorController;
+use App\Http\Controllers\Api\Admin\SubscriptionController as AdminSubscriptionController;
+use App\Http\Controllers\Api\Admin\UserController;
+use App\Http\Controllers\Api\Admin\WeatherDataController as AdminWeatherDataController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\Devices\SensorDataController;
 use App\Http\Controllers\Api\FarmerManager\ActuatorController as FarmerManagerActuatorController;
-use App\Http\Controllers\Api\FarmerManager\ScheduleController as FarmerManagerScheduleController;
+use App\Http\Controllers\Api\FarmerManager\AlertController as FarmerManagerAlertController;
 use App\Http\Controllers\Api\FarmerManager\ControlCommandController as FarmerManagerControlCommandController;
 use App\Http\Controllers\Api\FarmerManager\DiseaseDetectionController as FarmerManagerDiseaseDetectionController;
-use App\Http\Controllers\Api\FarmerManager\AlertController as FarmerManagerAlertController;
-use App\Http\Controllers\Api\FarmerManager\WeatherDataController as FarmerManagerWeatherDataController;
-use App\Http\Controllers\Api\FarmerManager\SubscriptionController as FarmerManagerSubscriptionController;
+use App\Http\Controllers\Api\FarmerManager\FarmController as FarmerManagerFarmController;
+use App\Http\Controllers\Api\FarmerManager\FinancialRecordController as FarmerManagerFinancialRecordController;
+use App\Http\Controllers\Api\FarmerManager\PlantController as FarmerManagerPlantController;
 use App\Http\Controllers\Api\FarmerManager\ReportController as FarmerManagerReportController;
 use App\Http\Controllers\Api\FarmerManager\ReportRequestController as FarmerManagerReportRequestController;
-use App\Http\Controllers\Api\FarmerManager\FinancialRecordController as FarmerManagerFinancialRecordController;
-
-use App\Http\Controllers\Api\Devices\SensorDataController;
+use App\Http\Controllers\Api\FarmerManager\ScheduleController as FarmerManagerScheduleController;
+use App\Http\Controllers\Api\FarmerManager\SensorController as FarmerManagerSensorController;
+use App\Http\Controllers\Api\FarmerManager\SubscriptionController as FarmerManagerSubscriptionController;
+use App\Http\Controllers\Api\FarmerManager\WeatherDataController as FarmerManagerWeatherDataController;
+use App\Http\Controllers\Api\Sensor\StoreHumiditySensorController;
+use App\Http\Controllers\Api\Sensor\StoreLdrSensorController;
+use App\Http\Controllers\Api\Sensor\StoreSoilMoistureSensorController;
+use App\Http\Controllers\Api\Sensor\StoreTemperatureSensorController;
+use Illuminate\Support\Facades\Route;
 
 // API Routes
 Route::group([], function () {
@@ -42,6 +43,13 @@ Route::group([], function () {
     Route::prefix('devices')->group(function () {
         Route::post('sensors/data', [SensorDataController::class, 'store']);
     });
+});
+
+Route::prefix('sensors')->group(function () {
+    Route::post('temperature', [StoreTemperatureSensorController::class, '__invoke']);
+    Route::post('humidity', [StoreHumiditySensorController::class, '__invoke']);
+    Route::post('soil-moisture', [StoreSoilMoistureSensorController::class, '__invoke']);
+    Route::post('ldr', [StoreLdrSensorController::class, '__invoke']);
 });
 
 Route::middleware('auth:api')->group(function () {
