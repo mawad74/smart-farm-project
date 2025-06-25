@@ -12,7 +12,7 @@ class CheckUserStatus
     {
         if (Auth::check()) {
             if (!Auth::user()->is_active) {
-                Auth::logout(); // تسجيل الخروج لو المستخدم موقوف
+                Auth::logout();
                 return redirect('/login')->with('error', 'Your account is inactive. Please contact the admin to activate your account.');
             }
         }

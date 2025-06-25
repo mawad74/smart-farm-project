@@ -24,7 +24,7 @@ class Log extends Model
     // Relationships
     public function user()
     {
-        return $this->belongsTo(\App\User::class); // Corrected from \App\Models\User
+        return $this->belongsTo(\App\User::class);
     }
 
     public function farm()

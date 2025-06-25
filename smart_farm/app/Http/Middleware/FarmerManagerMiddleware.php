@@ -10,10 +10,9 @@ class FarmerManagerMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::check() && Auth::user()->role === 'farmer_manager') {
-            return $next($request);
+        if (Auth::check() && Auth::user()->role !== 'farmer_manager') {
+            return redirect('/dashboard')->with('error', 'You do not have farmer manager access.');
         }
-
-        return redirect('/login')->with('error', 'Unauthorized access. Farmer Managers only.');
+        return $next($request);
     }
 }

@@ -19,12 +19,28 @@
                                 {{ session('error') }}
                             </div>
                         @endif
+                        @if ($errors->any())
+                            <div class="alert alert-danger">
+                                <ul>
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
                         <form method="POST" action="{{ route('admin.sensors.store') }}">
                             @csrf
                             <div class="mb-3">
                                 <label for="name" class="form-label">Sensor Name</label>
                                 <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
                                 @error('name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="mb-3">
+                                <label for="device_id" class="form-label">Device ID</label>
+                                <input type="text" class="form-control @error('device_id') is-invalid @enderror" id="device_id" name="device_id" value="{{ old('device_id') }}" required>
+                                @error('device_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>

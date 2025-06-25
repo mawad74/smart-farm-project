@@ -30,6 +30,13 @@
                                 @enderror
                             </div>
                             <div class="mb-3">
+                                <label for="device_id" class="form-label">Device ID</label>
+                                <input type="text" class="form-control @error('device_id') is-invalid @enderror" id="device_id" name="device_id" value="{{ old('device_id', $sensor->device_id) }}" required readonly>
+                                @error('device_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="mb-3">
                                 <label for="type" class="form-label">Sensor Type</label>
                                 <select class="form-control @error('type') is-invalid @enderror" id="type" name="type" required>
                                     <option value="">Select Sensor Type</option>

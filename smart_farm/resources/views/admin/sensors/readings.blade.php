@@ -25,7 +25,12 @@
                                     <tr>
                                         <th>ID</th>
                                         <th>Timestamp</th>
-                                        <th>Value</th>
+                                        <th>Soil Moisture (%)</th>
+                                        <th>Moisture Status</th>
+                                        <th>Light Level (%)</th>
+                                        <th>Light Status</th>
+                                        <th>Temperature (°C)</th>
+                                        <th>Humidity (%)</th>
                                         <th>Created At</th>
                                     </tr>
                                 </thead>
@@ -33,9 +38,14 @@
                                     @foreach ($readings as $reading)
                                         <tr>
                                             <td>{{ $reading->id }}</td>
-                                            <td>{{ $reading->timestamp->format('d M, Y H:i:s') }}</td>
-                                            <td>{{ $reading->value }}</td>
-                                            <td>{{ $reading->created_at->format('d M, Y H:i:s') }}</td>
+                                            <td>{{ \Carbon\Carbon::parse($reading->timestamp)->format('d M, Y H:i:s') }}</td>
+                                            <td>{{ number_format($reading->soil_moisture_percentage, 2) }}</td>
+                                            <td>{{ $reading->moisture_status }}</td>
+                                            <td>{{ number_format($reading->light_percentage, 2) }}</td>
+                                            <td>{{ $reading->light_status }}</td>
+                                            <td>{{ $reading->temperature }}</td>
+                                            <td>{{ $reading->humidity }}</td>
+                                            <td>{{ \Carbon\Carbon::parse($reading->created_at)->format('d M, Y H:i:s') }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -54,35 +64,11 @@
 
 @section('styles')
     <style>
-        .card-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .text-success {
-            font-size: 0.9rem;
-            margin-bottom: 0;
-        }
-
-        .table th {
-            background-color: #f8f9fa;
-            color: #555;
-            font-weight: 600;
-        }
-
-        .table td {
-            vertical-align: middle;
-        }
-
-        .pagination .page-link {
-            color: #4a7c59;
-        }
-
-        .pagination .page-item.active .page-link {
-            background-color: #4a7c59;
-            border-color: #4a7c59;
-            color: #fff;
-        }
+        .card-title { font-size: 1.5rem; font-weight: bold; color: #333; }
+        .text-success { font-size: 0.9rem; margin-bottom: 0; }
+        .table th { background-color: #f8f9fa; color: #555; font-weight: 600; }
+        .table td { vertical-align: middle; }
+        .pagination .page-link { color: #4a7c59; }
+        .pagination .page-item.active .page-link { background-color: #4a7c59; border-color: #4a7c59; color: #fff; }
     </style>
 @endsection

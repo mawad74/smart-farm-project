@@ -11,10 +11,12 @@ use App\Models\Farm;
 use App\Models\WeatherData;
 use App\Models\FinancialRecord;
 use App\Models\Log;
+use App\Models\ReportRequest;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Log as Logger;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\Notification;
 
 class AdminReportController extends Controller
 {
@@ -46,7 +48,9 @@ class AdminReportController extends Controller
         }
 
         $reports = $reportsQuery->paginate(10);
-        return view('admin.reports.index', compact('reports'));
+        $pendingRequests = ReportRequest::where('status', 'pending')->with('user', 'farm')->get();
+
+        return view('admin.reports.index', compact('reports', 'pendingRequests'));
     }
 
     public function create()
@@ -363,7 +367,80 @@ class AdminReportController extends Controller
     public function exportToPDF($id)
     {
         $report = Report::with('reportDetails')->findOrFail($id);
+
         $pdf = Pdf::loadView('admin.reports.pdf', compact('report'));
         return $pdf->download('report-' . $report->id . '.pdf');
+    }
+
+    public function approveRequest($id)
+    {
+        $request = ReportRequest::findOrFail($id);
+        if ($request->status === 'pending') {
+            $report = new Report();
+            $report->user_id = $request->user_id;
+            $report->farm_id = $request->farm_id;
+            $report->type = $request->type;
+            $report->save();
+
+            // تحديد البيانات بناءً على نوع التقرير
+            if ($request->type === 'system_performance') {
+                $activeSensors = Sensor::where('status', 'active')->where('farm_id', $request->farm_id)->count();
+                $faultySensors = Sensor::where('status', 'faulty')->where('farm_id', $request->farm_id)->count();
+                $communicationErrors = Sensor::where('status', 'faulty')->where('farm_id', $request->farm_id)->count();
+
+                ReportDetail::create(['report_id' => $report->id, 'category' => 'uptime', 'value' => 99.9, 'description' => 'System uptime percentage']);
+                ReportDetail::create(['report_id' => $report->id, 'category' => 'active_sensors', 'value' => $activeSensors, 'description' => 'Number of active sensors']);
+                ReportDetail::create(['report_id' => $report->id, 'category' => 'faulty_sensors', 'value' => $faultySensors, 'description' => 'Number of faulty sensors']);
+                ReportDetail::create(['report_id' => $report->id, 'category' => 'communication_errors', 'value' => $communicationErrors, 'description' => 'Number of communication errors']);
+            } elseif ($request->type === 'alert_history') {
+                $logs = Log::where('farm_id', $request->farm_id)->where('status', 'failed')->orderBy('timestamp', 'desc')->take(5)->get();
+                foreach ($logs as $log) {
+                    ReportDetail::create(['report_id' => $report->id, 'category' => 'alert', 'value' => 0, 'description' => "Alert: {$log->action} - {$log->message} at {$log->timestamp}"]);
+                }
+            } elseif ($request->type === 'environmental_conditions') {
+                $weatherData = WeatherData::where('farm_id', $request->farm_id)->orderBy('timestamp', 'desc')->take(10)->get();
+                $averageTemperature = $weatherData->avg('temperature') ?? 0;
+                $averageRainfall = $weatherData->avg('rainfall') ?? 0;
+                $averageWindSpeed = $weatherData->avg('wind_speed') ?? 0;
+
+                ReportDetail::create(['report_id' => $report->id, 'category' => 'average_temperature', 'value' => $averageTemperature, 'description' => 'Average temperature (°C)']);
+                ReportDetail::create(['report_id' => $report->id, 'category' => 'average_rainfall', 'value' => $averageRainfall, 'description' => 'Average rainfall (mm)']);
+                ReportDetail::create(['report_id' => $report->id, 'category' => 'average_wind_speed', 'value' => $averageWindSpeed, 'description' => 'Average wind speed (km/h)']);
+            } elseif ($request->type === 'resource_usage') {
+                ReportDetail::create(['report_id' => $report->id, 'category' => 'water_usage', 'value' => 1000, 'description' => 'Water usage (liters)']);
+                ReportDetail::create(['report_id' => $report->id, 'category' => 'electricity_usage', 'value' => 500, 'description' => 'Electricity usage (kWh)']);
+            } elseif ($request->type === 'crop_health') {
+                ReportDetail::create(['report_id' => $report->id, 'category' => 'healthy_crops', 'value' => 80, 'description' => 'Percentage of healthy crops']);
+                ReportDetail::create(['report_id' => $report->id, 'category' => 'diseased_crops', 'value' => 20, 'description' => 'Percentage of diseased crops']);
+            }
+
+            // إضافة إشعار للفارمر
+            \App\Models\Notification::create([
+                'user_id' => $request->user_id,
+                'type' => 'report_request_approved',
+                'message' => "Your report request for " . ucfirst(str_replace('_', ' ', $request->type)) . " on " . $request->farm->name . " has been approved.",
+                'is_read' => false,
+            ]);
+
+            $request->update(['status' => 'approved']);
+            Logger::info('Report request approved', ['request_id' => $request->id, 'report_id' => $report->id]);
+
+            return redirect()->route('admin.reports.index')->with('success', 'Report request approved and created successfully.');
+        }
+
+        return redirect()->route('admin.reports.index')->with('error', 'Invalid request status.');
+    }
+
+    public function rejectRequest($id)
+    {
+        $request = ReportRequest::findOrFail($id);
+        if ($request->status === 'pending') {
+            $request->update(['status' => 'rejected']);
+            Logger::info('Report request rejected', ['request_id' => $request->id]);
+
+            return redirect()->route('admin.reports.index')->with('success', 'Report request rejected.');
+        }
+
+        return redirect()->route('admin.reports.index')->with('error', 'Invalid request status.');
     }
 }

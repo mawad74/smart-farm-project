@@ -50,6 +50,13 @@
                     <h3 class="count-up text-dark" data-target="{{ $stats['executed_commands_count'] ?? 0 }}">0</h3>
                 </div>
             </div>
+            @if ($pendingRequestsCount > 0)
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <strong>{{ $pendingRequestsCount }} Pending Report Request(s)</strong>
+                    </div>
+                </div>
+            @endif
         </div>
 
         <!-- Visualizations -->

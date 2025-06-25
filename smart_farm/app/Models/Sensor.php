@@ -8,6 +8,7 @@ class Sensor extends Model
 {
     protected $fillable = [
         'name',
+        'device_id',
         'farm_id',
         'plant_id',
         'type',
@@ -22,7 +23,6 @@ class Sensor extends Model
         'light_intensity' => 'float',
     ];
 
-    // Relationships
     public function farm()
     {
         return $this->belongsTo(Farm::class);
@@ -36,10 +36,5 @@ class Sensor extends Model
     public function sensorData()
     {
         return $this->hasMany(SensorData::class);
-    }
-
-    public function alerts()
-    {
-        return $this->hasMany(Alert::class);
     }
 }

@@ -12,12 +12,12 @@ class CreateLogsTable extends Migration
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('farm_id')->nullable()->constrained('farms')->onDelete('set null');
-            $table->string('action');
+            $table->string('action'); // مثلاً: login, logout, create_farm, delete_sensor
             $table->enum('status', ['success', 'failed', 'info']);
-            $table->text('message')->nullable();
-            $table->dateTime('timestamp');
-            $table->dateTime('logout_time')->nullable();
-            $table->timestamp('created_at')->useCurrent();
+            $table->text('message')->nullable(); // تفاصيل النشاط
+            $table->dateTime('timestamp')->useCurrent(); // وقت حدوث النشاط
+            $table->dateTime('logout_time')->nullable(); // وقت تسجيل الخروج إذا كان login
+            $table->timestamps(); // created_at و updated_at
         });
     }
 

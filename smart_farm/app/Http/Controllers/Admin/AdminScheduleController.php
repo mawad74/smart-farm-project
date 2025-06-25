@@ -13,62 +13,62 @@ use Illuminate\Support\Facades\Log;
 
 class AdminScheduleController extends Controller
 {
-    public function index(Request $request)
-    {
-        $search = $request->input(key: 'search');
-        $sort = $request->input('sort', 'newest');
-        $farm_id = $request->input('farm_id');
-        $plant_id = $request->input('plant_id');
-        $actuator_id = $request->input('actuator_id');
-        $status = $request->input('status');
+public function index(Request $request)
+{
+    $search = $request->input('search');
+    $sort = $request->input('sort', 'newest');
+    $farm_id = $request->input('farm_id');
+    $plant_id = $request->input('plant_id');
+    $actuator_id = $request->input('actuator_id');
+    $status = $request->input('status');
 
-        $schedulesQuery = Schedule::with('farm', 'plant', 'actuator');
+    $schedulesQuery = Schedule::with('farm', 'plant', 'actuator');
 
-        // البحث
-        if ($search) {
-            $schedulesQuery->whereHas('farm', function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%");
-            })->orWhereHas('plant', function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%");
-            })->orWhereHas('actuator', function ($query) use ($search) {
-                $query->where('type', 'like', "%{$search}%");
-            });
-        }
-
-        // فلترة حسب المزرعة
-        if ($farm_id) {
-            $schedulesQuery->where('farm_id', $farm_id);
-        }
-
-        // فلترة حسب النبات
-        if ($plant_id) {
-            $schedulesQuery->where('plant_id', $plant_id);
-        }
-
-        // فلترة حسب الجهاز
-        if ($actuator_id) {
-            $schedulesQuery->where('actuator_id', $actuator_id);
-        }
-
-        // فلترة حسب الحالة
-        if ($status) {
-            $schedulesQuery->where('status', $status);
-        }
-
-        // الترتيب
-        if ($sort === 'newest') {
-            $schedulesQuery->latest();
-        } elseif ($sort === 'oldest') {
-            $schedulesQuery->oldest();
-        }
-
-        $schedules = $schedulesQuery->paginate(10);
-        $farms = Farm::all(); // جلب كل المزارع للفلترة
-        $plants = Plant::all(); // جلب كل النباتات للفلترة
-        $actuators = Actuator::all(); // جلب كل الأجهزة للفلترة
-
-        return view('admin.schedules.index', compact('schedules', 'farms', 'plants', 'actuators'));
+    // البحث
+    if ($search) {
+        $schedulesQuery->whereHas('farm', function ($query) use ($search) {
+            $query->where('name', 'like', "%{$search}%");
+        })->orWhereHas('plant', function ($query) use ($search) {
+            $query->where('name', 'like', "%{$search}%");
+        })->orWhereHas('actuator', function ($query) use ($search) {
+            $query->where('type', 'like', "%{$search}%");
+        });
     }
+
+    // فلترة حسب المزرعة
+    if ($farm_id) {
+        $schedulesQuery->where('farm_id', $farm_id);
+    }
+
+    // فلترة حسب النبات
+    if ($plant_id) {
+        $schedulesQuery->where('plant_id', $plant_id);
+    }
+
+    // فلترة حسب الجهاز
+    if ($actuator_id) {
+        $schedulesQuery->where('actuator_id', $actuator_id);
+    }
+
+    // فلترة حسب الحالة
+    if ($status) {
+        $schedulesQuery->where('status', $status);
+    }
+
+    // الترتيب
+    if ($sort === 'newest') {
+        $schedulesQuery->latest();
+    } elseif ($sort === 'oldest') {
+        $schedulesQuery->oldest();
+    }
+
+    $schedules = $schedulesQuery->paginate(10);
+    $farms = Farm::all(); // جلب كل المزارع للفلترة
+    $plants = Plant::all(); // جلب كل النباتات للفلترة
+    $actuators = Actuator::all(); // جلب كل الأجهزة للفلترة
+
+    return view('admin.schedules.index', compact('schedules', 'farms', 'plants', 'actuators'));
+}
 
     public function create()
     {

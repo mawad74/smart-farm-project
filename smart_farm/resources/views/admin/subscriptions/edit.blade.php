@@ -54,7 +54,7 @@
                                     <option value="">Select Status</option>
                                     <option value="active" {{ old('status', $subscription->status) === 'active' ? 'selected' : '' }}>Active</option>
                                     <option value="expired" {{ old('status', $subscription->status) === 'expired' ? 'selected' : '' }}>Expired</option>
-                                    <option value="canceled" {{ old('status', $subscription->status) === 'canceled' ? 'selected' : '' }}>Canceled</option>
+                                    <option value="cancelled" {{ old('status', $subscription->status) === 'cancelled' ? 'selected' : '' }}>Canceled</option>
                                 </select>
                                 @error('status')
                                     <div class="invalid-feedback">{{ $message }}</div>

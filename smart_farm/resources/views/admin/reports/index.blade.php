@@ -42,6 +42,36 @@
                                 <a href="{{ route('admin.reports.create') }}" class="btn btn-success">Add New Report</a>
                             </div>
                         </div>
+                        @if (session('success'))
+                            <div class="alert alert-success" role="alert">
+                                {{ session('success') }}
+                            </div>
+                        @endif
+                        @if (session('error'))
+                            <div class="alert alert-danger" role="alert">
+                                {{ session('error') }}
+                            </div>
+                        @endif
+                        @if ($pendingRequests->isNotEmpty())
+                            <div class="alert alert-info mb-4">
+                                <strong>Pending Report Requests:</strong>
+                                <ul>
+                                    @foreach ($pendingRequests as $request)
+                                        <li>
+                                            Request from {{ $request->user->name }} for {{ ucfirst(str_replace('_', ' ', $request->type)) }} on {{ $request->farm->name }}
+                                            <form action="{{ route('admin.reports.approveRequest', $request->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to approve this request?');">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-success me-1">Approve</button>
+                                            </form>
+                                            <form action="{{ route('admin.reports.rejectRequest', $request->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to reject this request?');">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                                            </form>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
                         @if ($reports->isEmpty())
                             <p class="text-muted">No reports available.</p>
                         @else
@@ -148,6 +178,12 @@
             background-color: #4a7c59;
             border-color: #4a7c59;
             color: #fff;
+        }
+
+        .alert-info {
+            background-color: #cce5ff;
+            border-color: #b8daff;
+            color: #004085;
         }
     </style>
 @endsection

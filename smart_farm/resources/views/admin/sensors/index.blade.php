@@ -71,6 +71,7 @@
                                 <thead>
                                     <tr>
                                         <th>ID</th>
+                                        <th>Device ID</th>
                                         <th>Name</th>
                                         <th>Farm</th>
                                         <th>Plant</th>
@@ -86,6 +87,7 @@
                                     @foreach ($sensors as $sensor)
                                         <tr>
                                             <td>{{ $sensor->id }}</td>
+                                            <td>{{ $sensor->device_id ?? 'N/A' }}</td>
                                             <td>{{ $sensor->name ?? 'N/A' }}</td>
                                             <td>{{ $sensor->farm ? $sensor->farm->name : 'N/A' }}</td>
                                             <td>{{ $sensor->plant ? $sensor->plant->name : 'N/A' }}</td>

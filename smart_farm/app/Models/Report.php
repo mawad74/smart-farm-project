@@ -10,6 +10,11 @@ class Report extends Model
         'farm_id',
         'user_id',
         'type',
+        // حذف 'generated_at' من هنا
+    ];
+
+    protected $casts = [
+        // حذف 'generated_at' => 'datetime' من هنا
     ];
 
     // Relationships
@@ -20,7 +25,7 @@ class Report extends Model
 
     public function user()
     {
-        return $this->belongsTo(\App\User::class); // Corrected from \App\Models\User
+        return $this->belongsTo(\App\User::class);
     }
 
     public function reportDetails()

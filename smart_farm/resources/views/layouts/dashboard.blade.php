@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @yield('styles')
 </head>
+
 <body>
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light shadow-sm fixed-top">
@@ -31,7 +32,8 @@
                         $expiringSoonSubscriptions = \App\Models\Subscription::where('status', 'active')
                             ->whereBetween('end_date', [\Carbon\Carbon::today(), \Carbon\Carbon::today()->addDays(3)])
                             ->get();
-                        $totalNotifications = $expiredSubscriptions->count() + $expiringSoonSubscriptions->count();
+                        $pendingRequests = \App\Models\ReportRequest::where('status', 'pending')->count();
+                        $totalNotifications = $expiredSubscriptions->count() + $expiringSoonSubscriptions->count() + $pendingRequests;
                     @endphp
                     <div class="dropdown me-3">
                         <a class="nav-link notification-icon" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -57,6 +59,14 @@
                                         <a class="dropdown-item text-warning" href="{{ route('admin.subscriptions.index') }}">
                                             <i class="fas fa-exclamation-triangle me-2"></i>
                                             {{ $expiring->user->name }}'s subscription expires on {{ $expiring->end_date->format('d M, Y') }}.
+                                        </a>
+                                    </li>
+                                @endforeach
+                                @foreach (\App\Models\ReportRequest::where('status', 'pending')->with('user', 'farm')->get() as $request)
+                                    <li>
+                                        <a class="dropdown-item text-info" href="{{ route('admin.reports.index') }}">
+                                            <i class="fas fa-file-alt me-2"></i>
+                                            New report request from {{ $request->user->name }} for {{ ucfirst(str_replace('_', ' ', $request->type)) }} on {{ $request->farm->name }}.
                                         </a>
                                     </li>
                                 @endforeach
@@ -234,11 +244,7 @@
                                 <i class="fas fa-money-bill-wave me-2"></i> Financial Records
                             </a>
                         </li>
-                        <li>
-                            <a class="dropdown-item {{ request()->routeIs('admin.logs.*') ? 'active' : '' }}" href="{{ route('admin.logs.index') }}">
-                                <i class="fas fa-history me-2"></i> Logs
-                            </a>
-                        </li>
+
                     </ul>
                 </li>
 
@@ -459,6 +465,14 @@
     }
 
     .notifications-dropdown .dropdown-item.text-warning:hover {
+        color: #fff !important;
+    }
+
+    .notifications-dropdown .dropdown-item.text-info {
+        color: #17a2b8 !important;
+    }
+
+    .notifications-dropdown .dropdown-item.text-info:hover {
         color: #fff !important;
     }
 

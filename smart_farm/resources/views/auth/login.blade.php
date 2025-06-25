@@ -11,6 +11,13 @@
                          class="img-fluid" alt="Login Image" style="max-width: 100%; height: 500px; object-fit: cover;">
                 </div>
                 <div class="col-12 col-md-5 col-lg-5">
+                    <!-- Display Error Message -->
+                    @if (session('error'))
+                        <div class="alert alert-danger text-center mb-4">
+                            {{ session('error') }}
+                        </div>
+                    @endif
+
                     <form method="POST" action="{{ route('login') }}" class="form-login">
                         @csrf
                         <div class="form-group d-flex flex-column align-items-center">
@@ -194,6 +201,16 @@
         .index-link:hover {
             color: #0056b3;
             text-decoration: underline;
+        }
+
+        /* Error Alert */
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 15px;
         }
 
         /* Responsive Design */

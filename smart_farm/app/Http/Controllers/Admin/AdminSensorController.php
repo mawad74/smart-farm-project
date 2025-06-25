@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Sensor;
 use App\Models\Farm;
 use App\Models\Plant;
+use App\Http\Resources\SensorResource;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Log;
@@ -67,6 +68,7 @@ class AdminSensorController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
+                'device_id' => 'required|string|unique:sensors,device_id',
                 'type' => 'required|in:temperature,humidity,soil_moisture,ph,nutrient',
                 'farm_id' => 'required|exists:farms,id',
                 'plant_id' => 'required|exists:plants,id',
@@ -75,17 +77,9 @@ class AdminSensorController extends Controller
                 'light_intensity' => 'nullable|numeric',
             ]);
 
-            $sensor = new Sensor();
-            $sensor->name = $request->name;
-            $sensor->type = $request->type;
-            $sensor->farm_id = $request->farm_id;
-            $sensor->plant_id = $request->plant_id;
-            $sensor->status = $request->status;
-            $sensor->location = $request->location;
-            $sensor->light_intensity = $request->light_intensity;
-            $sensor->save();
+            $sensor = Sensor::create($validated);
 
-            Log::info('Sensor created successfully', ['sensor_id' => $sensor->id]);
+            Log::info('Sensor created by Admin', ['sensor_id' => $sensor->id]);
             return redirect()->route('admin.sensors.index')->with('success', 'Sensor created successfully.');
         } catch (ValidationException $e) {
             Log::error('Validation failed for sensor creation', ['errors' => $e->errors()]);
@@ -95,12 +89,29 @@ class AdminSensorController extends Controller
             return redirect()->back()->with('error', 'Failed to create sensor: ' . $e->getMessage());
         }
     }
-
     public function showReadings($id)
     {
-        $sensor = Sensor::findOrFail($id);
-        $readings = $sensor->sensorData()->latest()->paginate(10);
-        return view('admin.sensors.readings', compact('sensor', 'readings'));
+        try {
+            $sensor = Sensor::with('sensorData')->findOrFail($id);
+            $readings = $sensor->sensorData()->select(
+                'id',
+                'sensor_id',
+                'soil_moisture_raw',
+                'soil_moisture_percentage',
+                'moisture_status',
+                'light_level_raw',
+                'light_percentage',
+                'light_status',
+                'temperature',
+                'humidity',
+                'timestamp',
+                'created_at'
+            )->latest()->paginate(10);
+            return view('admin.sensors.readings', compact('sensor', 'readings'));
+        } catch (\Exception $e) {
+            Log::error('Failed to retrieve sensor readings', ['sensor_id' => $id, 'error' => $e->getMessage()]);
+            return redirect()->route('admin.sensors.index')->with('error', 'Failed to load readings: ' . $e->getMessage());
+        }
     }
 
     public function edit($id)

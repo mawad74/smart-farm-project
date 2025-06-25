@@ -8,16 +8,29 @@ class SensorData extends Model
 {
     protected $fillable = [
         'sensor_id',
+        'soil_moisture_raw',
+        'soil_moisture_percentage',
+        'moisture_status',
+        'light_level_raw',
+        'light_percentage',
+        'light_status',
+        'temperature',
+        'humidity',
         'timestamp',
-        'value',
     ];
 
     protected $casts = [
         'timestamp' => 'datetime',
-        'value' => 'float',
+        'soil_moisture_raw' => 'float',
+        'soil_moisture_percentage' => 'float',
+        'light_level_raw' => 'float',
+        'light_percentage' => 'float',
+        'temperature' => 'float',
+        'humidity' => 'float',
     ];
 
-    // Relationships
+    public $timestamps = false; // تعطيل الـ Timestamps
+
     public function sensor()
     {
         return $this->belongsTo(Sensor::class);

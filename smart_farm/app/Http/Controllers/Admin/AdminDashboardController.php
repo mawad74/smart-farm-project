@@ -8,6 +8,7 @@ use App\Models\Sensor;
 use App\Models\Alert;
 use App\Models\ControlCommand;
 use App\Models\Plant;
+use App\Models\ReportRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 
@@ -15,10 +16,7 @@ class AdminDashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // Get selected farm (if any)
         $farm_id = $request->input('farm_id');
-        
-        // Quick Stats
         $stats = [
             'farms_count' => Farm::count(),
             'active_sensors_count' => Sensor::where('status', 'active')->count(),
@@ -26,10 +24,8 @@ class AdminDashboardController extends Controller
             'executed_commands_count' => ControlCommand::where('status', true)->count(),
         ];
 
-        // Farms for dropdown
+        $pendingRequestsCount = ReportRequest::where('status', 'pending')->count();
         $farms = Farm::all();
-
-        // Crops Overview (Plants distribution)
         $plants_query = Plant::query();
         if ($farm_id) {
             $plants_query->where('farm_id', $farm_id);
@@ -42,7 +38,6 @@ class AdminDashboardController extends Controller
                 return [$plant->type => $plant->count];
             })->toArray();
 
-        // Farm Info
         $farm_info = null;
         if ($farm_id) {
             $farm = Farm::find($farm_id);
@@ -56,7 +51,6 @@ class AdminDashboardController extends Controller
             }
         }
 
-        // Crops Percentage
         $crops_percentage = $plants_query->select('type')
             ->selectRaw('COUNT(*) as count')
             ->groupBy('type')
@@ -69,13 +63,10 @@ class AdminDashboardController extends Controller
                 ];
             })->toArray();
 
-        // Current Readings (for Gauges)
         $current_readings = $this->getCurrentReadings($farm_id);
-
-        // Temperature Data (for 3D Line Chart)
         $temperature_data = $this->getTemperatureData($farm_id, $request->input('period', 'monthly'));
 
-        return view('admin.dashboard', compact('stats', 'farms', 'plants', 'farm_info', 'crops_percentage', 'current_readings', 'temperature_data'));
+        return view('admin.dashboard', compact('stats', 'farms', 'plants', 'farm_info', 'crops_percentage', 'current_readings', 'temperature_data', 'pendingRequestsCount'));
     }
 
     private function calculateCropHealth($farm_id)
@@ -183,8 +174,6 @@ class AdminDashboardController extends Controller
                 \Illuminate\Support\Facades\Log::warning('SensorData table does not exist.');
                 return $readings;
             }
-
-            // Get latest temperature reading
             $temperature = \App\Models\SensorData::query()
                 ->join('sensors', 'sensor_data.sensor_id', '=', 'sensors.id')
                 ->where('sensors.type', 'temperature')
@@ -193,8 +182,6 @@ class AdminDashboardController extends Controller
                 })
                 ->orderBy('sensor_data.timestamp', 'desc')
                 ->first();
-
-            // Get latest humidity reading
             $humidity = \App\Models\SensorData::query()
                 ->join('sensors', 'sensor_data.sensor_id', '=', 'sensors.id')
                 ->where('sensors.type', 'humidity')

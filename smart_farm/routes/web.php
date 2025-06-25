@@ -1,6 +1,9 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminFarmController;
@@ -17,11 +20,22 @@ use App\Http\Controllers\Admin\AdminDiseaseDetectionController;
 use App\Http\Controllers\Admin\AdminFinancialRecordController;
 use App\Http\Controllers\Admin\AdminSettingController;
 use App\Http\Controllers\Admin\AdminWeatherDataController;
-use App\Http\Controllers\FarmerManagerDashboardController;
-use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Auth;
 
-// الصفحة الرئيسية (Welcome Page)
+use App\Http\Controllers\FarmerManager\FarmerManagerActuatorController;
+use App\Http\Controllers\FarmerManagerDashboardController;
+use App\Http\Controllers\FarmerManager\FarmerManagerAlertController;
+use App\Http\Controllers\FarmerManager\FarmerManagerControlCommandController;
+use App\Http\Controllers\FarmerManager\FarmerManagerDiseaseDetectionController;
+use App\Http\Controllers\FarmerManager\FarmerManagerFarmController;
+use App\Http\Controllers\FarmerManager\FarmerManagerPlantController;
+use App\Http\Controllers\FarmerManager\FarmerManagerProfileController;
+use App\Http\Controllers\FarmerManager\FarmerManagerReportController;
+use App\Http\Controllers\FarmerManager\FarmerManagerScheduleController;
+use App\Http\Controllers\FarmerManager\FarmerManagerSensorController;
+use App\Http\Controllers\FarmerManager\FarmerManagerSubscriptionController;
+use App\Http\Controllers\FarmerManager\FarmerManagerWeatherDataController;
+
+//(Welcome Page)
 Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
@@ -39,6 +53,15 @@ Route::get('/dashboard', function () {
     }
     return redirect('/login');
 })->name('dashboard');
+
+Route::post('/mark-notification-as-read/{id}', function ($id) {
+    $notification = \App\Models\Notification::findOrFail($id);
+    if ($notification->user_id === auth()->id()) {
+        $notification->update(['is_read' => true]);
+        return response()->json(['success' => true]);
+    }
+    return response()->json(['error' => 'Unauthorized'], 403);
+})->middleware('auth', 'farmer_manager');
 
 // Dashboard للـ Admin
 Route::middleware(['auth', 'check_status', 'admin'])->group(function () {
@@ -71,12 +94,8 @@ Route::middleware(['auth', 'check_status', 'admin'])->group(function () {
     Route::put('/admin/reports/{id}', [AdminReportController::class, 'update'])->name('admin.reports.update');
     Route::delete('/admin/reports/{id}', [AdminReportController::class, 'destroy'])->name('admin.reports.destroy');
     Route::get('/admin/reports/{id}/export', [AdminReportController::class, 'exportToPDF'])->name('admin.reports.export');
-
-    // Alerts
-    Route::get('/admin/alerts', [AdminAlertController::class, 'index'])->name('admin.alerts.index');
-    Route::get('/admin/alerts/{id}/edit', [AdminAlertController::class, 'edit'])->name('admin.alerts.edit');
-    Route::put('/admin/alerts/{id}', [AdminAlertController::class, 'update'])->name('admin.alerts.update');
-    Route::delete('/admin/alerts/{id}', [AdminAlertController::class, 'destroy'])->name('admin.alerts.destroy');
+    Route::post('/admin/reports/approve/{id}', [AdminReportController::class, 'approveRequest'])->name('admin.reports.approveRequest');
+    Route::post('/admin/reports/reject/{id}', [AdminReportController::class, 'rejectRequest'])->name('admin.reports.rejectRequest');
 
     // Sensors
     Route::get('/admin/sensors', [AdminSensorController::class, 'index'])->name('admin.sensors.index');
@@ -159,11 +178,95 @@ Route::middleware(['auth', 'check_status', 'admin'])->group(function () {
     Route::put('/admin/weather-data/{id}', [AdminWeatherDataController::class, 'update'])->name('admin.weather-data.update');
     Route::delete('/admin/weather-data/{id}', [AdminWeatherDataController::class, 'destroy'])->name('admin.weather-data.destroy');
 
-    // Logs
-    Route::get('/admin/logs', [AdminLogController::class, 'index'])->name('admin.logs.index');
+    
 });
 
 // Dashboard للـ Farmer Manager
 Route::middleware(['auth', 'check_status', 'farmer_manager'])->group(function () {
     Route::get('/farmer-manager/dashboard', [FarmerManagerDashboardController::class, 'index'])->name('farmer_manager.dashboard');
+    
+    // Profile
+    Route::get('/farmer-manager/profile/edit', [FarmerManagerProfileController::class, 'edit'])->name('farmer_manager.profile.edit');
+    Route::put('/farmer-manager/profile', [FarmerManagerProfileController::class, 'update'])->name('farmer_manager.profile.update');
+
+    // Farms
+    Route::get('/farmer-manager/farms', [FarmerManagerFarmController::class, 'index'])->name('farmer_manager.farms.index');
+    Route::get('/farmer-manager/farms/create', [FarmerManagerFarmController::class, 'create'])->name('farmer_manager.farms.create');
+    Route::post('/farmer-manager/farms', [FarmerManagerFarmController::class, 'store'])->name('farmer_manager.farms.store');
+    Route::get('/farmer-manager/farms/{id}/edit', [FarmerManagerFarmController::class, 'edit'])->name('farmer_manager.farms.edit');
+    Route::put('/farmer-manager/farms/{id}', [FarmerManagerFarmController::class, 'update'])->name('farmer_manager.farms.update');
+    Route::delete('/farmer-manager/farms/{id}', [FarmerManagerFarmController::class, 'destroy'])->name('farmer_manager.farms.destroy');
+
+    // Plants
+    Route::get('/farmer-manager/plants', [FarmerManagerPlantController::class, 'index'])->name('farmer_manager.plants.index');
+    Route::get('/farmer-manager/plants/create', [FarmerManagerPlantController::class, 'create'])->name('farmer_manager.plants.create');
+    Route::post('/farmer-manager/plants', [FarmerManagerPlantController::class, 'store'])->name('farmer_manager.plants.store');
+    Route::get('/farmer-manager/plants/{id}/edit', [FarmerManagerPlantController::class, 'edit'])->name('farmer_manager.plants.edit');
+    Route::put('/farmer-manager/plants/{id}', [FarmerManagerPlantController::class, 'update'])->name('farmer_manager.plants.update');
+    Route::delete('/farmer-manager/plants/{id}', [FarmerManagerPlantController::class, 'destroy'])->name('farmer_manager.plants.destroy');
+
+    // Sensors
+    Route::get('/farmer-manager/sensors', [FarmerManagerSensorController::class, 'index'])->name('farmer_manager.sensors.index');
+    Route::get('/farmer-manager/sensors/create', [FarmerManagerSensorController::class, 'create'])->name('farmer_manager.sensors.create');
+    Route::post('/farmer-manager/sensors', [FarmerManagerSensorController::class, 'store'])->name('farmer_manager.sensors.store');
+    Route::get('/farmer-manager/sensors/{id}/edit', [FarmerManagerSensorController::class, 'edit'])->name('farmer_manager.sensors.edit');
+    Route::put('/farmer-manager/sensors/{id}', [FarmerManagerSensorController::class, 'update'])->name('farmer_manager.sensors.update');
+    Route::delete('/farmer-manager/sensors/{id}', [FarmerManagerSensorController::class, 'destroy'])->name('farmer_manager.sensors.destroy');
+
+    // Actuators
+    Route::get('/farmer-manager/actuators', [FarmerManagerActuatorController::class, 'index'])->name('farmer_manager.actuators.index');
+    Route::get('/farmer-manager/actuators/create', [FarmerManagerActuatorController::class, 'create'])->name('farmer_manager.actuators.create');
+    Route::post('/farmer-manager/actuators', [FarmerManagerActuatorController::class, 'store'])->name('farmer_manager.actuators.store');
+    Route::get('/farmer-manager/actuators/{id}/edit', [FarmerManagerActuatorController::class, 'edit'])->name('farmer_manager.actuators.edit');
+    Route::put('/farmer-manager/actuators/{id}', [FarmerManagerActuatorController::class, 'update'])->name('farmer_manager.actuators.update');
+    Route::delete('/farmer-manager/actuators/{id}', [FarmerManagerActuatorController::class, 'destroy'])->name('farmer_manager.actuators.destroy');
+
+    // Weather Data
+    Route::get('/farmer-manager/weather-data', [FarmerManagerWeatherDataController::class, 'index'])->name('farmer_manager.weather-data.index');
+    Route::get('/farmer-manager/weather-data/create', [FarmerManagerWeatherDataController::class, 'create'])->name('farmer_manager.weather-data.create');
+    Route::post('/farmer-manager/weather-data', [FarmerManagerWeatherDataController::class, 'store'])->name('farmer_manager.weather-data.store');
+    Route::get('/farmer-manager/weather-data/{id}/edit', [FarmerManagerWeatherDataController::class, 'edit'])->name('farmer_manager.weather-data.edit');
+    Route::put('/farmer-manager/weather-data/{id}', [FarmerManagerWeatherDataController::class, 'update'])->name('farmer_manager.weather-data.update');
+    Route::delete('/farmer-manager/weather-data/{id}', [FarmerManagerWeatherDataController::class, 'destroy'])->name('farmer_manager.weather-data.destroy');
+
+    // Alerts
+    Route::get('/farmer-manager/alerts', [FarmerManagerAlertController::class, 'index'])->name('farmer_manager.alerts.index');
+    Route::get('/farmer-manager/alerts/create', [FarmerManagerAlertController::class, 'create'])->name('farmer_manager.alerts.create');
+    Route::post('/farmer-manager/alerts', [FarmerManagerAlertController::class, 'store'])->name('farmer_manager.alerts.store');
+    Route::get('/farmer-manager/alerts/{id}/edit', [FarmerManagerAlertController::class, 'edit'])->name('farmer_manager.alerts.edit');
+    Route::put('/farmer-manager/alerts/{id}', [FarmerManagerAlertController::class, 'update'])->name('farmer_manager.alerts.update');
+    Route::delete('/farmer-manager/alerts/{id}', [FarmerManagerAlertController::class, 'destroy'])->name('farmer_manager.alerts.destroy');
+
+    // Control Commands
+    Route::get('/farmer-manager/control-commands', [FarmerManagerControlCommandController::class, 'index'])->name('farmer_manager.control-commands.index');
+    Route::get('/farmer-manager/control-commands/create', [FarmerManagerControlCommandController::class, 'create'])->name('farmer_manager.control-commands.create');
+    Route::post('/farmer-manager/control-commands', [FarmerManagerControlCommandController::class, 'store'])->name('farmer_manager.control-commands.store');
+    Route::get('/farmer-manager/control-commands/{id}/edit', [FarmerManagerControlCommandController::class, 'edit'])->name('farmer_manager.control-commands.edit');
+    Route::put('/farmer-manager/control-commands/{id}', [FarmerManagerControlCommandController::class, 'update'])->name('farmer_manager.control-commands.update');
+    Route::delete('/farmer-manager/control-commands/{id}', [FarmerManagerControlCommandController::class, 'destroy'])->name('farmer_manager.control-commands.destroy');
+
+    // Disease Detections
+    Route::get('/farmer-manager/disease-detections', [FarmerManagerDiseaseDetectionController::class, 'index'])->name('farmer_manager.disease-detections.index');
+    Route::get('/farmer-manager/disease-detections/create', [FarmerManagerDiseaseDetectionController::class, 'create'])->name('farmer_manager.disease-detections.create');
+    Route::post('/farmer-manager/disease-detections', [FarmerManagerDiseaseDetectionController::class, 'store'])->name('farmer_manager.disease-detections.store');
+    Route::get('/farmer-manager/disease-detections/{id}/edit', [FarmerManagerDiseaseDetectionController::class, 'edit'])->name('farmer_manager.disease-detections.edit');
+    Route::put('/farmer-manager/disease-detections/{id}', [FarmerManagerDiseaseDetectionController::class, 'update'])->name('farmer_manager.disease-detections.update');
+    Route::delete('/farmer-manager/disease-detections/{id}', [FarmerManagerDiseaseDetectionController::class, 'destroy'])->name('farmer_manager.disease-detections.destroy');
+
+    // Schedules
+    Route::get('/farmer-manager/schedules', [FarmerManagerScheduleController::class, 'index'])->name('farmer_manager.schedules.index');
+    Route::get('/farmer-manager/schedules/create', [FarmerManagerScheduleController::class, 'create'])->name('farmer_manager.schedules.create');
+    Route::post('/farmer-manager/schedules', [FarmerManagerScheduleController::class, 'store'])->name('farmer_manager.schedules.store');
+    Route::get('/farmer-manager/schedules/{id}/edit', [FarmerManagerScheduleController::class, 'edit'])->name('farmer_manager.schedules.edit');
+    Route::put('/farmer-manager/schedules/{id}', [FarmerManagerScheduleController::class, 'update'])->name('farmer_manager.schedules.update');
+    Route::delete('/farmer-manager/schedules/{id}', [FarmerManagerScheduleController::class, 'destroy'])->name('farmer_manager.schedules.destroy');
+
+    // Subscriptions
+    Route::get('/farmer-manager/subscriptions/show', [FarmerManagerSubscriptionController::class, 'show'])->name('farmer_manager.subscriptions.show');
+
+    // Reports
+    Route::get('/farmer-manager/reports', [FarmerManagerReportController::class, 'index'])->name('farmer_manager.reports.index');
+    Route::get('/farmer-manager/reports/{id}', [FarmerManagerReportController::class, 'show'])->name('farmer_manager.reports.show');
+    Route::post('/farmer-manager/reports/request', [FarmerManagerReportController::class, 'storeRequest'])->name('farmer_manager.reports.storeRequest');
+    Route::get('/farmer-manager/reports/{id}/export', [FarmerManagerReportController::class, 'exportToPDF'])->name('farmer_manager.reports.export');
 });
