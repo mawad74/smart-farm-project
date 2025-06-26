@@ -9,10 +9,10 @@ class StoreSensorDataRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'temperature' => ['required'],
-            'humidity' => ['required'],
-            'soil' => ['required'],
-            'ldr' => ['required' ],
+            'temperature' => ['required', 'numeric'],
+            'humidity' => ['required', 'numeric'],
+            'soil' => ['required', 'numeric'],
+            'ldr' => ['required', 'numeric']
         ];
     }
 }
