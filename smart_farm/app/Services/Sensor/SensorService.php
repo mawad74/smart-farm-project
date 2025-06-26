@@ -65,7 +65,7 @@ class SensorService
 
     public function storeTemperatureSensorData(float $value): SensorService
     {
-        $sensor = $this->getOrCreateSensor(SensorTypeConstant::TEMPERATURE, 'Temperature Sensor', '°C');
+        $sensor = $this->getOrCreateSensor(SensorTypeConstant::TEMPERATURE, 'Temperature Sensor', 'Celsius');
 
         $this->storeSensorData($sensor, $value);
 
@@ -74,7 +74,7 @@ class SensorService
 
     public function storeHumiditySensorData(float $value): SensorService
     {
-        $sensor = $this->getOrCreateSensor(SensorTypeConstant::HUMIDITY, 'Humidity Sensor', '%');
+        $sensor = $this->getOrCreateSensor(SensorTypeConstant::HUMIDITY, 'Humidity Sensor', 'Percentage');
 
         $this->storeSensorData($sensor, $value);
 
