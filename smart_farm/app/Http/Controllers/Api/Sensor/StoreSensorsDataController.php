@@ -8,13 +8,17 @@ use App\Models\Farm;
 use App\Services\Sensor\SensorService;
 use Illuminate\Http\JsonResponse;
 
-class StoreSoilMoistureSensorController extends Controller
+class StoreSensorsDataController extends Controller
 {
     public function __invoke(StoreSensorDataRequest $request): JsonResponse
     {
+        $data = $request->validated();
+
         SensorService::make(Farm::first())
-            ->setOrCreateSoilMoistureSensor()
-            ->storeSensorData($request->validated()['value']);
+            ->storeTemperatureSensorData($data['temperature'])
+            ->storeHumiditySensorData($data['humidity'])
+            ->storeLdrSensorData($data['ldr'])
+            ->storeSoilMoistureSensorData($data['soil']);
 
         return response()->json([
             'status' => 'success',

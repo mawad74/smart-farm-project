@@ -13,10 +13,6 @@ class SensorService
      * @var Farm
      */
     private $farm;
-    /**
-     * @var Sensor
-     */
-    private $sensor;
 
     public function __construct(Farm $farm)
     {
@@ -28,16 +24,20 @@ class SensorService
         return new self($farm);
     }
 
-    public function setOrCreateLdrSensor(): SensorService
+    public function storeLdrSensorData(float $value): SensorService
     {
-        $this->sensor = $this->getOrCreateSensor(SensorTypeConstant::LDR, 'LDR Sensor', 'Lux');
+        $sensor = $this->getOrCreateSensor(SensorTypeConstant::LDR, 'LDR Sensor', 'Lux');
+
+        $this->storeSensorData($sensor, $value);
 
         return $this;
     }
 
-    public function setOrCreateSoilMoistureSensor(): SensorService
+    public function storeSoilMoistureSensorData(float $value): SensorService
     {
-        $this->sensor = $this->getOrCreateSensor(SensorTypeConstant::SOIL_MOISTURE, 'Soil Moisture Sensor', 'Percentage');
+        $sensor = $this->getOrCreateSensor(SensorTypeConstant::SOIL_MOISTURE, 'Soil Moisture Sensor', 'Percentage');
+
+        $this->storeSensorData($sensor, $value);
 
         return $this;
     }
@@ -56,23 +56,27 @@ class SensorService
         );
     }
 
-    public function storeSensorData(float $value): Model
+    public function storeSensorData(Sensor $sensor, float $value): Model
     {
-        return $this->sensor->sensorData()->create([
+        return $sensor->sensorData()->create([
             'value' => $value,
         ]);
     }
 
-    public function setOrCreateTemperatureSensor(): SensorService
+    public function storeTemperatureSensorData(float $value): SensorService
     {
-        $this->sensor = $this->getOrCreateSensor(SensorTypeConstant::TEMPERATURE, 'Temperature Sensor', '°C');
+        $sensor = $this->getOrCreateSensor(SensorTypeConstant::TEMPERATURE, 'Temperature Sensor', '°C');
+
+        $this->storeSensorData($sensor, $value);
 
         return $this;
     }
 
-    public function setOrCreateHumiditySensor(): SensorService
+    public function storeHumiditySensorData(float $value): SensorService
     {
-        $this->sensor = $this->getOrCreateSensor(SensorTypeConstant::HUMIDITY, 'Humidity Sensor', '%');
+        $sensor = $this->getOrCreateSensor(SensorTypeConstant::HUMIDITY, 'Humidity Sensor', '%');
+
+        $this->storeSensorData($sensor, $value);
 
         return $this;
     }

@@ -32,8 +32,12 @@ use App\Http\Controllers\Api\FarmerManager\WeatherDataController as FarmerManage
 use App\Http\Controllers\Api\Sensor\StoreHumiditySensorController;
 use App\Http\Controllers\Api\Sensor\StoreLdrSensorController;
 use App\Http\Controllers\Api\Sensor\StoreSoilMoistureSensorController;
-use App\Http\Controllers\Api\Sensor\StoreTemperatureSensorController;
+use App\Http\Controllers\Api\Sensor\StoreSensorsDataController;
 use Illuminate\Support\Facades\Route;
+
+Route::prefix('sensor')->group(function () {
+    Route::post('data', [StoreSensorsDataController::class, '__invoke']);
+});
 
 // API Routes
 Route::group([], function () {
@@ -45,12 +49,6 @@ Route::group([], function () {
     });
 });
 
-Route::prefix('sensors')->group(function () {
-    Route::post('temperature', [StoreTemperatureSensorController::class, '__invoke']);
-    Route::post('humidity', [StoreHumiditySensorController::class, '__invoke']);
-    Route::post('soil-moisture', [StoreSoilMoistureSensorController::class, '__invoke']);
-    Route::post('ldr', [StoreLdrSensorController::class, '__invoke']);
-});
 
 Route::middleware('auth:api')->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
