@@ -172,11 +172,7 @@
                                 <i class="fas fa-cloud me-2"></i> Weather Data
                             </a>
                         </li>
-                        <li>
-                            <a class="dropdown-item {{ request()->routeIs('admin.alerts.*') ? 'active' : '' }}" href="{{ route('admin.alerts.index') }}">
-                                <i class="fas fa-bell me-2"></i> Alerts
-                            </a>
-                        </li>
+ 
                     </ul>
                 </li>
 
