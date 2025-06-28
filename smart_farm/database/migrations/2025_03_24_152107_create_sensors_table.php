@@ -10,15 +10,11 @@ class CreateSensorsTable extends Migration
     {
         Schema::create('sensors', function (Blueprint $table) {
             $table->id();
+            $table->string('type');
             $table->string('name');
+            $table->string('unit')->nullable();
             $table->foreignId('farm_id')->constrained('farms')->onDelete('cascade')->nullable(); // جعلها اختيارية
-            $table->foreignId('plant_id')->constrained('plants')->onDelete('cascade')->nullable(); // جعلها اختيارية
-            $table->enum('type', ['temperature', 'humidity', 'soil_moisture', 'ph', 'nutrient']);
-            $table->float('value')->nullable();
-            $table->enum('status', ['active', 'inactive', 'faulty'])->default('active');
-            $table->string('location')->nullable();
-            $table->float('light_intensity')->nullable();
-            $table->string('device_id')->nullable()->unique(); // إضافة device_id كـ unique واختياري
+            $table->string('status')->default('active');
             $table->timestamps();
         });
     }
